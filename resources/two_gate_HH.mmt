@@ -1,39 +1,64 @@
 [[model]]
+desc: """
+    A two-gate Hodgkin-Huxley model of the current IKr
+"""
 # Initial values
-ikr.a = 0 #activation
-ikr.r = 0 #recovery
+ikr.a = 0
+#ikr.r = ... TODO
 
 [ikr]
 # Voltage-dependent transition rates (activation)
 alpha_a = p1 * exp(p2 * membrane.V)
+    in [1/ms]
 beta_a = p3 * exp(-p4 * membrane.V)
+    in [1/ms]
 
 # Voltage-dependent transition rates (recovery)
 alpha_r = p7 * exp(-p8 * membrane.V)
+    in [1/ms]
 beta_r = p5 * exp(p6 * membrane.V)
+    in [1/ms]
 
 # Transition rate parameters
-p1 = 2.1e-3
-p2 = 7.2e-2
-p3 = 3.5e-5
-p4 = 6.2e-2
-p5 = 4.2e-1
-p6 = 2.6e-2
-p7 = 4.8e-2
-p8 = 2.5e-2
+p1 = 2.1e-3 [1/ms] in [1/ms]
+p2 = 7.2e-2 [1/mV] in [1/mV]
+p3 = 3.5e-5 [1/ms] in [1/ms]
+p4 = 6.2e-2 [1/mV] in [1/mV]
+p5 = 4.2e-1 [1/ms] in [1/ms]
+p6 = 2.6e-2 [1/mV] in [1/mV]
+p7 = 4.8e-2 [1/ms] in [1/ms]
+p8 = 2.5e-2 [1/mV] in [1/mV]
 
-# System of ODEs (activation)
-dot(a) = alpha_a * (1-a) - beta_a * a
+# System of ODEs (activation and recovery)
+dot(a) = alpha_a * (1 - a) - beta_a * a
+#dot(r) = ... TODO
 
-# System of ODEs (recovery)
-### TODO: Write the ODE for the recovery gate ###
+# Current
+#IKr = ... TODO
+#    in [pA]
+g = 0.1524 [nS]
+    in [nS]
+    desc: The maximum conductance
+
+[membrane]
+V = engine.pace * 1 [mV]
+    desc: membrane potential
+    in [mV]
+    
+[reversal]
+R = 8314 [J/kmol/K] : Gas constant
+    in [J/kmol/K]
+T = 310 [K] : Temperature
+    in [K]
+F = 96487 [C/mol] : Faraday constant
+    in [C/mol]
+Ki = 140 [mM] in [mM] : Internal K+ concentration
+Ko = 4 [mM] in [mM] : External K+ concentration
+E = R * T / F * log(Ko / Ki)
+    in [mV]
 
 [engine]
-time = 0 bind time
+time = 0 [ms] bind time
     in [ms]
 pace = 0 bind pace
 
-[membrane]
-V = engine.pace
-    desc: membrane potential
-    in [mV]

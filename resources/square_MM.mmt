@@ -1,38 +1,66 @@
 [[model]]
+desc: """
+    A four-state Markov model of the current IKr
+"""
 # Initial values
-ikr.O = 0 #Open
-ikr.CI = 0 #Closed Inactive
-ikr.I = 0 #Inactive
+ikr.C = 1
+ikr.O = 0 
+ikr.I = 0
 
 [ikr]
 # Voltage-dependent transition rates
 alpha_a = p1 * exp(p2 * membrane.V)
+    in [1/ms]
 beta_a = p3 * exp(-p4 * membrane.V)
+    in [1/ms]
 alpha_r = p7 * exp(-p8 * membrane.V)
+    in [1/ms]
 beta_r = p5 * exp(p6 * membrane.V)
+    in [1/ms]
 
 # Transition rate parameters
-p1 = 2.1e-3
-p2 = 7.2e-2
-p3 = 3.5e-5
-p4 = 6.2e-2
-p5 = 4.2e-1
-p6 = 2.6e-2
-p7 = 4.8e-2
-p8 = 2.5e-2
+p1 = 2.1e-3 [1/ms] in [1/ms]
+p2 = 7.2e-2 [1/mV] in [1/mV]
+p3 = 3.5e-5 [1/ms] in [1/ms]
+p4 = 6.2e-2 [1/mV] in [1/mV]
+p5 = 4.2e-1 [1/ms] in [1/ms]
+p6 = 2.6e-2 [1/mV] in [1/mV]
+p7 = 4.8e-2 [1/ms] in [1/ms]
+p8 = 2.5e-2 [1/mV] in [1/mV]
 
 # System of ODEs 
-dot(O) = -beta_a * O + alpha_a * C + alpha_r * I - beta_r * O
-dot(CI) = -alpha_a * CI + beta_a * I + beta_r * C - alpha_r * CI
-### TODO: Write the ODE for the Inactive state ###
-C = 1 - O - CI - I # Ensure sum of states equals 1
+dot(C) = beta_a * O - alpha_a * C + alpha_r * CI - beta_r * C
+dot(O) = ... TODO
+dot(I) = alpha_a * CI - beta_a * I + beta_r * O - alpha_r * I
+# Ensure sum of states equals 1
+CI = 1 - C - O - I
+
+# Current
+IKr = g * O * (membrane.V - reversal.E)
+    in [pA]
+g = 0.1524 [nS]
+    in [nS]
+    desc: The maximum conductance
+
+[membrane]
+V = engine.pace * 1 [mV]
+    desc: membrane potential
+    in [mV]
+    
+[reversal]
+R = 8314 [J/kmol/K] : Gas constant
+    in [J/kmol/K]
+T = 310 [K] : Temperature
+    in [K]
+F = 96487 [C/mol] : Faraday constant
+    in [C/mol]
+Ki = 140 [mM] in [mM] : Internal K+ concentration
+Ko = 4 [mM] in [mM] : External K+ concentration
+E = R * T / F * log(Ko / Ki)
+    in [mV]
 
 [engine]
-time = 0 bind time
+time = 0 [ms] bind time
     in [ms]
 pace = 0 bind pace
 
-[membrane]
-V = engine.pace
-    desc: membrane potential
-    in [mV]
